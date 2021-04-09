@@ -75,15 +75,6 @@ namespace AntSystem
 					for (auto edge : Edges[ant.CurrentNode])
 					{
 						auto [node_number, edge_data] = edge;
-						denominator += std::pow(edge_data.Pheromone * edge_data.InvDist, Params.Beta);;
-					}
-
-					/* decide on a direction to move to */
-					float highest_probability = -1.0f;
-					int MoveToNode = -1;
-					for (auto edge : Edges[ant.CurrentNode])
-					{
-						auto [node_number, edge_data] = edge;
 
 						/* check if we visited this node already?*/
 						bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
@@ -95,29 +86,53 @@ namespace AntSystem
 							if (already_visisted)
 								continue;
 
-							/* calculate probability to move */
-							float numerator = std::pow(edge_data.Pheromone * edge_data.InvDist, Params.Beta);
-							float p = numerator / denominator;
-
-							/* test if ant can move */
-							bool MakeMove = (p >= Random::get<float>(0.0f, 1.0f));
-							if (MakeMove)
-							{
-								MoveToNode = node_number;
-								break;
-							}
-
-							/* save if it is a higher prob for the default move. */
-							auto save_higher_probability = p > highest_probability;
-							if (save_higher_probability)
-							{
-								highest_probability = p;
-								MoveToNode = node_number;
-							}
+						denominator += std::pow(edge_data.Pheromone * edge_data.InvDist, Params.Beta);;
 					}
 
-					if (MoveToNode < 0)
+					/* decide on a node to move to */					
+					int move_to_node = -1;
+					float sum_probability = 0.0f;
+
+					for (auto edge : Edges[ant.CurrentNode])
 					{
+						auto [node_number, edge_data] = edge;
+
+						/* check if we visited this node already?*/
+						bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
+							[node_number](int a)
+							{
+								return a == node_number;
+							}) != ant.NodesVisited.end();
+
+						if (already_visisted)
+							continue;
+
+						/* test if ant can move */
+						float edge_probability = std::pow(edge_data.Pheromone * edge_data.InvDist, 2.0f) / denominator;
+						sum_probability += edge_probability;
+						float random_value = Random::get<float>(0.0f, 1.0f);
+
+						bool make_move = (sum_probability >= random_value);
+						if (make_move)
+						{
+							move_to_node = node_number;
+							break;
+						}
+					}
+
+					/* if no valid node is available the move ant to previous node */
+					if (move_to_node < 0)
+					{						
+						int previous_node_index = ant.NodesVisited.size() - 2;
+						if (previous_node_index < 0)
+						{
+							std::cout << "invalid node index\n";
+							exit(1);
+						}
+
+						int previous_node = ant.NodesVisited[previous_node_index];
+						ant.CurrentNode = previous_node;
+
 						ant.Alive = false; // no node available to move to 
 						ant.GoodAnt = false;
 						std::cout << "[ERROR ]  Ant killed! \n";
@@ -125,14 +140,17 @@ namespace AntSystem
 					}
 
 					/* move ant to new node */
-					ant.DistanceTraveled += Edges[ant.CurrentNode][MoveToNode].Distance;
-					ant.CurrentNode = MoveToNode;
-					ant.NodesVisited.push_back(MoveToNode);
+					ant.DistanceTraveled += Edges[ant.CurrentNode][move_to_node].Distance;
+					ant.CurrentNode = move_to_node;
+					ant.NodesVisited.push_back(move_to_node);
 
 					/* check for terminating condition */
 					auto VisistedAllNodes = ant.NodesVisited.size() == Nodes.size();
 					if (VisistedAllNodes)
+					{
 						ant.Alive = false;
+						ant.GoodAnt = true;
+					}
 
 				} while (ant.Alive);
 			}

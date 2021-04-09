@@ -1,5 +1,5 @@
 #pragma once
-#include "base.h"
+#include "../base.h"
 
 namespace AntSystem
 {
@@ -13,7 +13,7 @@ namespace AntSystem
 
 		float PheromoneMin = 0.01f; // also used as the default 
 		float PheromoneDecay = 0.1f;		
-		SimSettings(int iterations = 10,int NodeCount = 10, int AntCount = 10) : Iterations(10), TotalNodes(NodeCount), TotalAnts(AntCount) 
+		SimSettings(int iterations = 10,int NodeCount = 10, int AntCount = 10) : Iterations(iterations), TotalNodes(NodeCount), TotalAnts(AntCount) 
 		{	};
 	};
 
@@ -50,7 +50,7 @@ namespace AntSystem
 	public:
 		AntSystem();
 		~AntSystem();
-		void Setup(const SimSettings& params);
+		void Setup(const SimSettings& params = SimSettings());
 		void Run();
 
 	private:
