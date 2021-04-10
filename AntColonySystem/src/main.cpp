@@ -3,9 +3,9 @@
 
 int main(int argc, char *ergv[])
 {
-	int total_nodes = 1000;
+	int total_nodes = 500;
 	int total_ants = 10;
-	int iterations = 100;
+	int iterations = 50;
 
 	ACO::NodeManager::SetParamsAndMakeNodes(total_nodes, 100, 1500, 100, 800);
 		

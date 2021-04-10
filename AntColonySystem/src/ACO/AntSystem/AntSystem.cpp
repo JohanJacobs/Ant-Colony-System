@@ -7,7 +7,7 @@ namespace ACO::AntSystem
 	AntSystem::AntSystem(SimSettings settings /*= SimSettings()*/)
 	{
 		Params = settings;
-		std::cout << "\n\n TSP with Ant System\n";
+		std::cout << "\n\nTSP with Ant System\n";
 	}
 
 	float AntSystem::Run(std::vector < std::pair<int, int>> SimNodes, int TotalItertions, int TotalAnts)
@@ -175,8 +175,7 @@ namespace ACO::AntSystem
 	{
 		Edges.clear();
 
-		/* setup all the edges, fully connected, Undirected graph*/
-		std::cout << "Creating " << Nodes.size() * (Nodes.size() - 1) << " edges.\n";
+		/* setup all the edges, fully connected, Undirected graph*/		
 		for (int i = 0; i < Nodes.size(); i++)
 		{
 			for (int j = 0; j < Nodes.size(); j++)
