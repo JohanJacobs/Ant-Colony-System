@@ -10,14 +10,14 @@ Understand the algorithm: Code was writted to illustrate / understand the algori
 To create nodes:__
     ACO::NodeManager::SetParamsAndMakeNodes(total_nodes, minX, maxX, minY, maxY); 
 
-To run a simluation with the created nodes :__
-    ACO::AntSystem::SimSettings ant_system_default_settings;__
-    ACO::AntSystem::AntSystem ant_system(ant_system_default_settings);__
-    float as_best = ant_system.Run(ACO::NodeManager::GetNodes(), iterations, total_ants);__
+To run a simluation with the created nodes :<br/>
+    ACO::AntSystem::SimSettings ant_system_default_settings;<br/>
+    ACO::AntSystem::AntSystem ant_system(ant_system_default_settings);<br/>
+    float as_best = ant_system.Run(ACO::NodeManager::GetNodes(), iterations, total_ants);<br />
 
-    ACO::AntColonySystem::SimSettings ant_colony_system_default_settings;__
-    ACO::AntColonySystem::AntColonySystem ant_colony_system(ant_colony_system_default_settings);__
-    float acs_best = ant_colony_system.Run(ACO::NodeManager::GetNodes(), iterations, total_ants);__
+    ACO::AntColonySystem::SimSettings ant_colony_system_default_settings;<br />
+    ACO::AntColonySystem::AntColonySystem ant_colony_system(ant_colony_system_default_settings);<br />
+    float acs_best = ant_colony_system.Run(ACO::NodeManager::GetNodes(), iterations, total_ants);<br />
 
 # Class: AntSystem: 
 The original algorithm discussed in the background section of the paper. Based on M. Dorigo, Optimization learning and natural algorithms, 1992.
