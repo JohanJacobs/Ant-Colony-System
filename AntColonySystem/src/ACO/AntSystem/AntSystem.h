@@ -13,14 +13,6 @@ namespace ACO::AntSystem
 		SimSettings()=default;
 	};
 
-	struct NodeSettings
-	{
-		int MinX = 100;
-		int MinY = 100;
-		int MaxX = 800;
-		int MaxY = 1500;
-	};
-
 	struct EdgeData
 	{
 		float Distance = 0.0f;
@@ -36,9 +28,8 @@ namespace ACO::AntSystem
 		bool Alive = true;
 		bool GoodAnt = true;
 		std::vector<int> NodesVisited;
-		float DistanceTraveled = 0;
+		float DistanceTraveled = 0.0f;
 		AntData(int start_node) :CurrentNode(start_node) {};
-
 	};
 
 	class AntSystem
@@ -50,8 +41,7 @@ namespace ACO::AntSystem
 
 	private:
 		void SetupEdges();
-	private:
-		NodeSettings NodeParams;
+	private:		
 		SimSettings Params;
 		std::vector<std::pair<int, int>> Nodes;
 		std::map<int, std::map<int, EdgeData>>  Edges; //Adjacency list 	

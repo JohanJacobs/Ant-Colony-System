@@ -16,17 +16,19 @@ namespace ACO::AntColonySystem
 		/* setup nodes and Edges  */
 		SetupEdges();
 
-		/* Run sim */
+		/* keep track of the best ant */
 		float global_best_ant_distance = std::numeric_limits<float>::max();
 		std::vector<int> global_best_ant_path;
 		bool global_best_ant_changed = false;
-		int iteration = 0;
-		while (iteration < TotalItertions)
+			
+
+		for (int iteration = 0; iteration < TotalItertions; iteration++)
 		{
 			std::cout << "Iteration[" << iteration << "]\n";
+
 			/* setup ants */
 			Ants.clear();
-			for (int AntCounter = 0; AntCounter < TotalAnts; AntCounter++)
+			for (int ant_counter = 0; ant_counter < TotalAnts; ant_counter++)
 			{
 				int start_node = Random::get<int>(0, int(Nodes.size()) - 1);
 				auto& ant = Ants.emplace_back(AntData(start_node));
@@ -46,13 +48,8 @@ namespace ACO::AntColonySystem
 					float total = 0;
 					for (auto [node_number, edge] : Edges[ant.CurrentNode])
 					{
-						/* check if the ant visited this node before */
-						bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
-							[node_number](int a)
-							{
-								return a == node_number;
-							}) != ant.NodesVisited.end();
-						if (already_visisted)
+						/* check if the ant visited this node before */						
+						if (AntAlreadyVisistedNode(node_number, ant.NodesVisited))
 							continue;
 
 						float pheromone = std::pow(edge.Pheromone * edge.InvDist, Params.beta);
@@ -69,13 +66,8 @@ namespace ACO::AntColonySystem
 						float best_edge_score = -1;
 						for (auto [node_number, edge] : Edges[ant.CurrentNode])
 						{
-							/* check if the ant visited this node before */
-							bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
-								[node_number](int a)
-								{
-									return a == node_number;
-								}) != ant.NodesVisited.end();
-							if (already_visisted)
+							/* check if the ant visited this node before */							
+							if (AntAlreadyVisistedNode(node_number, ant.NodesVisited))
 								continue;
 
 							/* check if this edge is closer */
@@ -99,12 +91,7 @@ namespace ACO::AntColonySystem
 
 						for (auto [node_number, edge] : Edges[ant.CurrentNode])
 						{
-							bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
-								[node_number](int a)
-								{
-									return a == node_number;
-								}) != ant.NodesVisited.end();
-							if (already_visisted)
+							if (AntAlreadyVisistedNode(node_number, ant.NodesVisited))
 								continue;
 
 							/* test if ant can move */
@@ -156,8 +143,6 @@ namespace ACO::AntColonySystem
 				}
 			}
 			
-			/* global pheromone updating rule is applied */
-
 			/* calculate the best ant index */						
 			for (int current_ant = 1; current_ant < Ants.size(); current_ant++)
 			{
@@ -212,7 +197,6 @@ namespace ACO::AntColonySystem
 		}
 
 		PrintRoute( global_best_ant_distance, true, global_best_ant_path);
-
 		return global_best_ant_distance;
 	}
 
@@ -236,8 +220,10 @@ namespace ACO::AntColonySystem
 		
 		/* use nearest neighbor for the pheromone initial value */
 		float nearest_neighbour_distance = 0;
+
 		int current_node = 0;
 		float distance = 0;
+		
 		std::vector <int> visited_nodes;
 		visited_nodes.push_back(current_node);	
 
@@ -251,13 +237,7 @@ namespace ACO::AntColonySystem
 				auto [node_number, edge_data] = edge;			
 				
 				/* check if we visited this node already?*/
-				bool already_visisted = std::find_if(visited_nodes.begin(), visited_nodes.end(),
-					[node_number](int a)
-					{
-						return a == node_number;
-					}) != visited_nodes.end();
-
-				if (already_visisted)
+				if (AntAlreadyVisistedNode(node_number, visited_nodes))
 					continue;
 
 				/* if this node is closer update the data */

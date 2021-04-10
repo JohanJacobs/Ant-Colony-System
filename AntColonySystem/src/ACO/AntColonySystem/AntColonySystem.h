@@ -10,7 +10,7 @@ namespace ACO::AntColonySystem
 		float q0 = 0.9f; // determines the relative importance of exploitation versus exploration 
 		float p = 0.1f;
 
-		float PheromoneMin = 0.01f; // also used as the default 
+		//float PheromoneMin = 0.01f; // also used as the default 
 		float PheromoneDecay = 0.1f;		
 		SimSettings() = default;
 	};
@@ -33,7 +33,6 @@ namespace ACO::AntColonySystem
 		std::vector<int> NodesVisited;
 		float DistanceTraveled = 0.0f;
 		AntData(int start_node) :CurrentNode(start_node) {};
-
 	};
 
 	class AntColonySystem

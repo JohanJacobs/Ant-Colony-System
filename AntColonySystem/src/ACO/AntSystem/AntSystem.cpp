@@ -14,6 +14,7 @@ namespace ACO::AntSystem
 	{	
 		Nodes = SimNodes;
 		SetupEdges();
+
 		/* run the simulation */
 		std::vector<int> BestRoute;
 		float BestRouteDistance = std::numeric_limits<float>::max(); // maximum value for a float.
@@ -22,9 +23,10 @@ namespace ACO::AntSystem
 		for (int iteration = 0; iteration < TotalItertions; iteration++)
 		{
 			std::cout << "Iteration[" << iteration << "]\n";
+
 			/* setup the ant defaults */
 			Ants.clear();
-			for (int i = 0; i < TotalAnts; i++)
+			for (int ant_counter = 0; ant_counter < TotalAnts; ant_counter++)
 			{
 				int start_node = Random::get<int>(0, int(Nodes.size()) - 1);
 				auto& ant = Ants.emplace_back(AntData(start_node));
@@ -42,14 +44,8 @@ namespace ACO::AntSystem
 						auto [node_number, edge_data] = edge;
 
 						/* check if we visited this node already?*/
-						bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
-							[node_number](int a)
-							{
-								return a == node_number;
-							}) != ant.NodesVisited.end();
-
-							if (already_visisted)
-								continue;
+						if (AntAlreadyVisistedNode(node_number, ant.NodesVisited))
+							continue;
 
 						denominator += std::pow(edge_data.Pheromone * edge_data.InvDist, Params.Beta);;
 					}
@@ -63,13 +59,7 @@ namespace ACO::AntSystem
 						auto [node_number, edge_data] = edge;
 
 						/* check if we visited this node already?*/
-						bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
-							[node_number](int a)
-							{
-								return a == node_number;
-							}) != ant.NodesVisited.end();
-
-						if (already_visisted)
+						if (AntAlreadyVisistedNode(node_number, ant.NodesVisited))
 							continue;
 
 						/* test if ant can move */
@@ -91,7 +81,7 @@ namespace ACO::AntSystem
 						int previous_node_index = int(ant.NodesVisited.size()) - 2;
 						if (previous_node_index < 0)
 						{
-							std::cout << "invalid node index\n";
+							std::cerr << "invalid node index\n";
 							exit(1);
 						}
 
