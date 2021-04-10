@@ -89,6 +89,8 @@ namespace ACO::AntColonySystem
 						int move_to_node = -1;						
 						float sum_probability= 0.0f;
 
+						float random_value = Random::get<float>(0.0f, 1.0f);
+
 						for (auto [node_number, edge] : Edges[ant.CurrentNode])
 						{
 							if (AntAlreadyVisistedNode(node_number, ant.NodesVisited))
@@ -97,8 +99,7 @@ namespace ACO::AntColonySystem
 							/* test if ant can move */
 							float edge_probability = std::pow(edge.Pheromone * edge.InvDist, 2.0f) / denominator;
 							sum_probability += edge_probability;
-							float random_value = Random::get<float>(0.0f, 1.0f);
-
+							
 							bool ant_should_make_move = (sum_probability >= random_value);
 							if (ant_should_make_move)
 							{

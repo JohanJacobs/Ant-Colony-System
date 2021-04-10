@@ -2,9 +2,9 @@
 
 int main(int argc, char *ergv[])
 {
-	int total_nodes = 500;
-	int total_ants = 10;
-	int iterations = 50;
+	int total_nodes = 100;
+	int total_ants = 20;
+	int iterations = 100;
 	
 	/* setup the nodes for the simulation*/
 	ACO::NodeManager::SetParamsAndMakeNodes(total_nodes, 100, 1500, 100, 800);

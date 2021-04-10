@@ -47,12 +47,13 @@ namespace ACO::AntSystem
 						if (AntAlreadyVisistedNode(node_number, ant.NodesVisited))
 							continue;
 
-						denominator += std::pow(edge_data.Pheromone * edge_data.InvDist, Params.Beta);;
+						denominator += std::pow(edge_data.Pheromone * edge_data.InvDist, Params.Beta);
 					}
 
 					/* decide on a node to move to */					
 					int move_to_node = -1;
 					float sum_probability = 0.0f;
+					float random_value = Random::get<float>(0.0f, 1.0f);
 
 					for (auto edge : Edges[ant.CurrentNode])
 					{
@@ -65,7 +66,6 @@ namespace ACO::AntSystem
 						/* test if ant can move */
 						float edge_probability = std::pow(edge_data.Pheromone * edge_data.InvDist, 2.0f) / denominator;
 						sum_probability += edge_probability;
-						float random_value = Random::get<float>(0.0f, 1.0f);
 
 						bool make_move = (sum_probability >= random_value);
 						if (make_move)
