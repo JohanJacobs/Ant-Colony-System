@@ -10,9 +10,10 @@ The original algorithm discussed in the background section of the paper. Based o
 # Class: AntColonySystem
 The propsed algorithm in this paper.
 
-# Requirements:
+# Required Libraries:
  - Used Effolkronium for random numbers: https://github.com/effolkronium/random
 
 # General Nodes
  - Currently uses Randomly generated Node locations.
+ - All nodes are fully connected.
  - Ant start positions are random.

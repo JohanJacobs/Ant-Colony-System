@@ -2,17 +2,19 @@
 
 /* TODO: Update to nearest neighbor heuristic! */
 
-namespace AntColonySystem
+namespace ACO::AntColonySystem
 {
-
-	void AntColonySystem::Setup(const SimSettings& params)
+	AntColonySystem::AntColonySystem(SimSettings settings /*= SimSettings()*/)
 	{
-		Params = params;
+		Params = settings;
+		std::cout << "\n\n TSP with Ant Colony System\n";
 	}
-	void AntColonySystem::Run(int TotalItertions, int TotalNodes, int TotalAnts)
+
+	float AntColonySystem::Run(std::vector < std::pair<int, int>> SimNodes, int TotalItertions, int TotalAnts)
 	{
+		Nodes = SimNodes;
 		/* setup nodes and Edges  */
-		SetupNodesAndEdges(TotalNodes);
+		SetupEdges();
 
 		/* Run sim */
 		float global_best_ant_distance = std::numeric_limits<float>::max();
@@ -21,11 +23,12 @@ namespace AntColonySystem
 		int iteration = 0;
 		while (iteration < TotalItertions)
 		{
+			std::cout << "Iteration[" << iteration << "]\n";
 			/* setup ants */
 			Ants.clear();
 			for (int AntCounter = 0; AntCounter < TotalAnts; AntCounter++)
 			{
-				int start_node = Random::get<int>(0, TotalNodes - 1);
+				int start_node = Random::get<int>(0, int(Nodes.size()) - 1);
 				auto& ant = Ants.emplace_back(AntData(start_node));
 				ant.NodesVisited.push_back(start_node);
 			}
@@ -199,47 +202,27 @@ namespace AntColonySystem
 				}
 			}
 						
-			/* print best routes */
-			std::cout << "Iteration[" << iteration << "]\n";
+			/* print best routes */			
 			if (global_best_ant_changed)
 			{
-				std::cout<<"     --= Improved Distance =-\n"
-					"     Shortest Distance: " << global_best_ant_distance<< "\n"
-					"     Route information: ";
-				for (auto n : global_best_ant_path)
-					std::cout << n << " -> ";
-				std::cout << "\n";
+				PrintRoute(global_best_ant_distance, false, global_best_ant_path);
 				global_best_ant_changed = false;
 			}
 			iteration += 1;
 		}
 
-		std::cout <<
-			"Shortest Distance: " << global_best_ant_distance << "\n"
-			"Route information: ";
-		for (auto n : global_best_ant_path)
-			std::cout << n << " -> ";
-		std::cout << "\n";
+		PrintRoute( global_best_ant_distance, true, global_best_ant_path);
 
+		return global_best_ant_distance;
 	}
 
-	void AntColonySystem::SetupNodesAndEdges(int TotalNodes)
+	void AntColonySystem::SetupEdges()
 	{
-		/* reset everything */
-		Nodes.clear();
+		/* reset everything */		
 		Edges.clear();
-
-		/* setup random nodes */
-		std::cout << "Creating " << TotalNodes << " nodes.\n";
-		for (int i = 0; i < TotalNodes; i++)
-		{
-			int x = Random::get<int>(Params.MinX, Params.MaxX);
-			int y = Random::get<int>(Params.MinY, Params.MaxY);
-			auto new_node = Nodes.emplace_back(std::make_pair(x, y));
-		}
-
+				
 		/* setup all the edges, fully connected, Undirected graph*/
-		std::cout << "Creating " << TotalNodes * (TotalNodes - 1) << " edges.\n";
+		std::cout << "Creating " << Nodes.size() * (Nodes.size() - 1) << " edges.\n";
 		for (int i = 0; i < Nodes.size(); i++)
 		{
 			for (int j = 0; j < Nodes.size(); j++)
@@ -257,8 +240,7 @@ namespace AntColonySystem
 		int current_node = 0;
 		float distance = 0;
 		std::vector <int> visited_nodes;
-		visited_nodes.push_back(current_node);
-		std::cout << "nearest Neighbor: "<<current_node << " > ";
+		visited_nodes.push_back(current_node);	
 
 		while (visited_nodes.size() < Nodes.size())
 		{
@@ -288,12 +270,11 @@ namespace AntColonySystem
 			}
 			/* move to closets node */
 			nearest_neighbour_distance += closest_edge_dist;
-			visited_nodes.push_back(closest_edge);
-			std::cout << closest_edge << " > ";
+			visited_nodes.push_back(closest_edge);			
 		}
 		std::cout << "\n";
 
-		float default_pheromone = 1 / (TotalNodes * nearest_neighbour_distance);
+		float default_pheromone = 1 / (Nodes.size() * nearest_neighbour_distance);
 
 		/* update all edges with default pheromone */
 		for (auto& [from_node, from_node_edges] : Edges)
@@ -304,5 +285,5 @@ namespace AntColonySystem
 				edge_data.Pheromone = default_pheromone;
 			}
 		}
-	}
+	}		
 }

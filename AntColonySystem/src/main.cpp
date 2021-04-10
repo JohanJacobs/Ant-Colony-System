@@ -1,16 +1,24 @@
 
-#include "AntSystem/AntSystem.h"
-#include "AntColonySystem/AntColonySystem.h"
+#include "ACO/ACO.h"
 
 int main(int argc, char *ergv[])
 {
-	//AntSystem::AntSystem sim;	
-	//sim.Setup(AntSystem::SimSettings(100, 100, 100));
-	//sim.Run();	
+	int total_nodes = 1000;
+	int total_ants = 10;
+	int iterations = 100;
+
+	ACO::NodeManager::SetParamsAndMakeNodes(total_nodes, 100, 1500, 100, 800);
+		
+	ACO::AntSystem::SimSettings ant_system_defaults;
+	ACO::AntSystem::AntSystem ant_system(ant_system_defaults);	
+	float as_best = ant_system.Run(ACO::NodeManager::GetNodes(),iterations, total_ants);
 
 
-	AntColonySystem::AntColonySystem sim2;
-	sim2.Run(100, 100, 100);
-	
+	ACO::AntColonySystem::SimSettings ant_colony_system_defaults;
+	ACO::AntColonySystem::AntColonySystem ant_colony_system(ant_colony_system_defaults);
+	float acs_best = ant_colony_system.Run(ACO::NodeManager::GetNodes(), iterations, total_ants);
+	std::cout << "-- Results -- \n" 
+				 "AntSystem: " << as_best << "\n"
+		         "AntColonySystem: " << acs_best;
 	return 0;
 }

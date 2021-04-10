@@ -1,67 +1,32 @@
 #include "AntSystem.h"
 
-namespace AntSystem
+
+namespace ACO::AntSystem
 {
 
-	AntSystem::AntSystem()
+	AntSystem::AntSystem(SimSettings settings /*= SimSettings()*/)
 	{
-		std::cout << "TSP with AntSystem\n";
+		Params = settings;
+		std::cout << "\n\n TSP with Ant System\n";
 	}
 
-	AntSystem::~AntSystem()
-	{
-
-	}
-
-	void AntSystem::Setup(const SimSettings& params)
-	{
-		Params = params;		
-
-		Nodes.clear();
-		Edges.clear();
-
-		/* setup random nodes */
-		std::cout << "Creating " << Params.TotalNodes << " nodes.\n";		
-		for (int i = 0; i < Params.TotalNodes; i++)
-		{
-			int x = Random::get<int>(NodeParams.MinX, NodeParams.MaxX);
-			int y = Random::get<int>(NodeParams.MinY, NodeParams.MaxY);
-			auto new_node = Nodes.emplace_back(std::make_pair(x, y));
-		}
-
-		/* setup all the edges, fully connected, Undirected graph*/
-		std::cout << "Creating " << Params.TotalNodes * (Params.TotalNodes - 1) << " edges.\n";		
-		for (int i = 0; i < Nodes.size(); i++)
-		{
-			for (int j = 0; j < Nodes.size(); j++)
-			{
-				// skip if they are the same 
-				if (i == j)
-					continue;
-				Edges[i][j].Distance = Dist(Nodes[i], Nodes[j]);
-				Edges[i][j].InvDist = 1 / Edges[i][j].Distance;
-				Edges[i][j].Pheromone = Params.PheromoneMin;
-			}
-		}
-	}
-
-	void AntSystem::Run()
+	float AntSystem::Run(std::vector < std::pair<int, int>> SimNodes, int TotalItertions, int TotalAnts)
 	{	
-
+		Nodes = SimNodes;
+		SetupEdges();
 		/* run the simulation */
 		std::vector<int> BestRoute;
 		float BestRouteDistance = std::numeric_limits<float>::max(); // maximum value for a float.
 		int BestRouteIteration = -1;
 
-		for (int iteration = 0; iteration < Params.Iterations; iteration++)
+		for (int iteration = 0; iteration < TotalItertions; iteration++)
 		{
-			std::cout << "Iteration [ " << iteration << " ]\n";
-
+			std::cout << "Iteration[" << iteration << "]\n";
 			/* setup the ant defaults */
 			Ants.clear();
-			for (int i = 0; i < Params.TotalAnts; i++)
+			for (int i = 0; i < TotalAnts; i++)
 			{
-				int start_node = Random::get<int>(0, Params.TotalNodes - 1);
+				int start_node = Random::get<int>(0, int(Nodes.size()) - 1);
 				auto& ant = Ants.emplace_back(AntData(start_node));
 				ant.NodesVisited.push_back(start_node);
 			}
@@ -123,7 +88,7 @@ namespace AntSystem
 					/* if no valid node is available the move ant to previous node */
 					if (move_to_node < 0)
 					{						
-						int previous_node_index = ant.NodesVisited.size() - 2;
+						int previous_node_index = int(ant.NodesVisited.size()) - 2;
 						if (previous_node_index < 0)
 						{
 							std::cout << "invalid node index\n";
@@ -196,22 +161,34 @@ namespace AntSystem
 					BestRouteDistance = ant.DistanceTraveled;
 					BestRouteIteration = iteration;
 					BestRoute = ant.NodesVisited;
-					std::cout << "    Better Route detected with distance " << BestRouteDistance << "\n";
-					std::cout << "    route: ";
-					for (auto n : BestRoute)
-						std::cout << n << " -> ";
-					std::cout << "\n";
+					PrintRoute(BestRouteDistance,false, BestRoute);					
 				}
 			}
 		}
 
 		/* print best routes */
-		std::cout << " --= RESULTS =-\n"
-			"Shortest Distance: " << BestRouteDistance << "\n"
-			"Route information:";
-		for (auto n : BestRoute)
-			std::cout << n << " -> ";
-		std::cout << "\n";
+		PrintRoute(BestRouteDistance,true, BestRoute);				
+		return BestRouteDistance;
+	}
+
+	void AntSystem::SetupEdges()
+	{
+		Edges.clear();
+
+		/* setup all the edges, fully connected, Undirected graph*/
+		std::cout << "Creating " << Nodes.size() * (Nodes.size() - 1) << " edges.\n";
+		for (int i = 0; i < Nodes.size(); i++)
+		{
+			for (int j = 0; j < Nodes.size(); j++)
+			{
+				// skip if they are the same 
+				if (i == j)
+					continue;
+				Edges[i][j].Distance = Dist(Nodes[i], Nodes[j]);
+				Edges[i][j].InvDist = 1 / Edges[i][j].Distance;
+				Edges[i][j].Pheromone = Params.PheromoneMin;
+			}
+		}
 	}
 
 }

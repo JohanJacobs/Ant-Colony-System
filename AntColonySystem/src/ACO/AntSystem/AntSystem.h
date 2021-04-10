@@ -1,31 +1,31 @@
 #pragma once
 #include "../base.h"
 
-namespace AntColonySystem
+namespace ACO::AntSystem
 {
 	struct SimSettings
 	{
-		int MinX = 0;
-		int MaxX = 1500;
-		int MinY = 0;
-		int MaxY = 800;
-
-		float beta = 2.0f;
-		float gamma = 0.7f;
-		float q0 = 0.9f; // determines the relative importance of exploitation versus exploration 
-		float p = 0.1f;
+		float Beta = 2.0f;
 
 		float PheromoneMin = 0.01f; // also used as the default 
-		float PheromoneDecay = 0.1f;		
-		SimSettings() = default;
+		float PheromoneDecay = 0.1f;	
+
+		SimSettings()=default;
+	};
+
+	struct NodeSettings
+	{
+		int MinX = 100;
+		int MinY = 100;
+		int MaxX = 800;
+		int MaxY = 1500;
 	};
 
 	struct EdgeData
 	{
 		float Distance = 0.0f;
-		float InvDist = 0.0f;
 		float Pheromone = 0.0f;
-		float PheromoneDefault = 0.0f;// calculated at setup
+		float InvDist = 0.0f;		
 		EdgeData() {}
 		EdgeData(const EdgeData& other) :Distance(other.Distance), Pheromone(other.Pheromone), InvDist(other.InvDist) {};
 	};
@@ -36,22 +36,24 @@ namespace AntColonySystem
 		bool Alive = true;
 		bool GoodAnt = true;
 		std::vector<int> NodesVisited;
-		float DistanceTraveled = 0.0f;
+		float DistanceTraveled = 0;
 		AntData(int start_node) :CurrentNode(start_node) {};
 
 	};
 
-	class AntColonySystem
+	class AntSystem
 	{
 	public:
-		void Setup(const SimSettings& params = SimSettings());
-		void Run(int TotalItertions, int TotalNodes, int TotalAnts);
+		AntSystem(SimSettings settings = SimSettings());
+		~AntSystem()=default;		
+		float Run(std::vector < std::pair<int, int>> SimNodes, int TotalItertions, int TotalAnts);
 
 	private:
-		void SetupNodesAndEdges(int TotalNodes);		
+		void SetupEdges();
 	private:
+		NodeSettings NodeParams;
 		SimSettings Params;
-		std::vector<std::pair<int, int>> Nodes;		
+		std::vector<std::pair<int, int>> Nodes;
 		std::map<int, std::map<int, EdgeData>>  Edges; //Adjacency list 	
 		std::vector<AntData> Ants;
 	};

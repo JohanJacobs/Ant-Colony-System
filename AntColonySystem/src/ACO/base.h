@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <iostream>
 
 /* for the random numbers in Effolkronium */
 #include "Effolkronium/random.hpp"
@@ -16,4 +17,17 @@ inline float SqDist(const std::pair<int, int>& a, const std::pair<int, int>& b)
 inline float Dist(const std::pair<int, int>& a, const std::pair<int, int>& b)
 { 
 	return std::sqrt(SqDist(a, b)); 
+}
+
+static void PrintRoute( float distance,bool print_route, const std::vector <int>& route)
+{
+	std::cout <<"     Shortest Distance: " << distance << "\n";
+
+	if (print_route)
+	{
+		std::cout << "     Route information: ";
+		for (const auto& n : route)
+			std::cout << n << " - ";
+		std::cout << "\n";
+	}
 }
