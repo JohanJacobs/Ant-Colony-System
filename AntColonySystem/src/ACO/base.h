@@ -9,16 +9,20 @@
 #include "Effolkronium/random.hpp"
 using Random = effolkronium::random_static;
 
-inline float SqDist(const std::pair<int, int>& a, const std::pair<int, int>& b) 
-{ 
-	return std::pow(float(a.first - b.first), 2.0f) + std::pow(float(a.second - b.second), 2.0f); 
-}
 
+/* 
+	some functions to make things easier 
+*/
+
+/* calculate the distance between two points */
 inline float Dist(const std::pair<int, int>& a, const std::pair<int, int>& b)
 { 
-	return std::sqrt(SqDist(a, b)); 
+	return std::sqrt(std::pow(float(a.first - b.first), 2.0f) + std::pow(float(a.second - b.second), 2.0f));
 }
 
+/*
+	print an Ant route
+*/
 static void PrintRoute( float distance,bool print_route, const std::vector <int>& route)
 {
 	std::cout <<"  Shortest Distance: " << distance << "\n";
@@ -32,6 +36,11 @@ static void PrintRoute( float distance,bool print_route, const std::vector <int>
 	}
 }
 
+/* 
+	check if a node is already in the visited nodes of an ant. 
+	node_number: the node index that will be searched
+	ant_path: a vector containing all the node_indices that the ant visited.
+*/
 static bool AntAlreadyVisistedNode(int node_number, const std::vector<int>& ant_path)
 {
 	auto result = std::find_if(ant_path.begin(), ant_path.end(),
