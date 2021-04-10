@@ -15,6 +15,9 @@ namespace AntColonySystem
 		SetupNodesAndEdges(TotalNodes);
 
 		/* Run sim */
+		float global_best_ant_distance = std::numeric_limits<float>::max();
+		std::vector<int> global_best_ant_path;
+		bool global_best_ant_changed = false;
 		int iteration = 0;
 		while (iteration < TotalItertions)
 		{
@@ -40,6 +43,15 @@ namespace AntColonySystem
 					float total = 0;
 					for (auto [node_number, edge] : Edges[ant.CurrentNode])
 					{
+						/* check if the ant visited this node before */
+						bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
+							[node_number](int a)
+							{
+								return a == node_number;
+							}) != ant.NodesVisited.end();
+						if (already_visisted)
+							continue;
+
 						float pheromone = std::pow(edge.Pheromone * edge.InvDist, Params.beta);
 						denominator += pheromone;
 					}
@@ -50,19 +62,31 @@ namespace AntColonySystem
 					if (AntShouldExploit)
 					{
 						// take the best path
-						int best_edge_node = 0;
-						float best_edge_score = std::numeric_limits<float>::max();
+						int best_edge_node = -1;
+						float best_edge_score = -1;
 						for (auto [node_number, edge] : Edges[ant.CurrentNode])
 						{
+							/* check if the ant visited this node before */
+							bool already_visisted = std::find_if(ant.NodesVisited.begin(), ant.NodesVisited.end(),
+								[node_number](int a)
+								{
+									return a == node_number;
+								}) != ant.NodesVisited.end();
+							if (already_visisted)
+								continue;
+
+							/* check if this edge is closer */
 							float edge_score = std::pow(edge.Pheromone * edge.InvDist, 2.0f) / denominator;
-							if (edge_score > best_edge_score)
+							bool this_edge_has_better_score = edge_score > best_edge_score;
+							if (this_edge_has_better_score)
 							{
 								best_edge_node = node_number;
 								best_edge_score = edge_score;
 							}
 						}
-						ant.CurrentNode = best_edge_node;
+						ant.DistanceTraveled += Edges[ant.CurrentNode][best_edge_node].Distance;
 						ant.NodesVisited.push_back(best_edge_node);
+						ant.CurrentNode = best_edge_node;
 					}
 					else
 					{
@@ -85,8 +109,8 @@ namespace AntColonySystem
 							sum_probability += edge_probability;
 							float random_value = Random::get<float>(0.0f, 1.0f);
 
-							bool make_move = (sum_probability >= random_value);
-							if (make_move)
+							bool ant_should_make_move = (sum_probability >= random_value);
+							if (ant_should_make_move)
 							{
 								move_to_node = node_number;								
 								break;
@@ -94,42 +118,109 @@ namespace AntColonySystem
 						}
 						
 						/* move the ant */						
-						ant.CurrentNode = move_to_node;
+						ant.DistanceTraveled += Edges[ant.CurrentNode][move_to_node].Distance;
 						ant.NodesVisited.push_back(move_to_node);
-						if (ant.NodesVisited.size() == Nodes.size())
+						ant.CurrentNode = move_to_node;
+
+						bool this_ant_visisted_all_nodes = ant.NodesVisited.size() == Nodes.size();
+						if (this_ant_visisted_all_nodes)
 						{
 							ant.Alive = false;
 							ant.GoodAnt = true;
 						}
 					}
-				} while (ant.NodesVisited.size() <= Nodes.size() && ant.Alive);
+				} while (ant.NodesVisited.size() < Nodes.size() && ant.Alive);
 			}
 
-			/* Local Pheromone updating according to (5)*/			
+			/* Local Pheromone updating according to (5) */			
+			/* Here the pheromone is reduced for each edge that an ant traversed */			
 			for (auto ant : Ants)
 			{
 				bool this_ant_was_bad = !ant.GoodAnt;
 				if (this_ant_was_bad)
 					continue;
 
-				for (size_t node_index = 1; node_index < ant.NodesVisited.size(); node_index + 1)
+				for (size_t node_index = 1; node_index < ant.NodesVisited.size(); node_index ++)
 				{
-					size_t current_node = node_index - 1;
-					size_t next_node = node_index;
+					int current_node = int(node_index) - 1;
+					int next_node = int(node_index);
+					auto& edge_data = Edges[current_node][next_node]; // reference to the edge data for editing
 
 					/* formula (5) */
-					//float antQ = Params.gamma*max(z) // see page 4
-					//float edge_pheromone = Edges[current_node][next_node].Pheromone + Params.p*Delta(r,s)
-					float new_pheromone = (1 - Params.p) * 1;
+					float decay = (1 - Params.p) * edge_data.Pheromone;
+					float adjusted_default = Params.p * edge_data.PheromoneDefault;
+					float new_pheromone = decay + adjusted_default;
 				}
-
-
 			}
-			/*heuristic based on 3-opt*/
-
+			
 			/* global pheromone updating rule is applied */
+
+			/* calculate the best ant index */						
+			for (int current_ant = 1; current_ant < Ants.size(); current_ant++)
+			{
+				float current_ant_distance = Ants[current_ant].DistanceTraveled;
+				bool current_ant_is_better = (current_ant_distance < global_best_ant_distance);
+
+				if (current_ant_is_better)
+				{
+					global_best_ant_distance = current_ant_distance;
+					global_best_ant_path = Ants[current_ant].NodesVisited;
+					global_best_ant_changed = true;
+				}
+			}
+
+			/* Global updating rule, update all the edges with formula (4) */	
+			float inv_best_ant_distance = 1 / global_best_ant_distance;						
+			for (auto& [from_node, from_node_edges] : Edges)
+			{
+				for (auto& [too_node, edge_data] : from_node_edges)
+				{
+					/* was this edge visited by the best ant */
+					bool best_ant_visited_this_edge = false;
+					for (int index = 1; index < global_best_ant_path.size(); index++)
+					{												
+						int from = global_best_ant_path[size_t(index) - 1];
+						int too = global_best_ant_path[index];
+						if (from == from_node  && too == too_node)
+						{
+							best_ant_visited_this_edge = true;
+							break;
+						}
+					}
+
+					/* update pheromone */
+					float decay = (1 - Params.PheromoneDecay) * edge_data.Pheromone;
+					float boost = 0;
+					
+					if (best_ant_visited_this_edge)
+						boost = Params.PheromoneDecay * inv_best_ant_distance;
+
+					edge_data.Pheromone = decay + boost;
+				}
+			}
+						
+			/* print best routes */
+			std::cout << "Iteration[" << iteration << "]\n";
+			if (global_best_ant_changed)
+			{
+				std::cout<<"     --= Improved Distance =-\n"
+					"     Shortest Distance: " << global_best_ant_distance<< "\n"
+					"     Route information: ";
+				for (auto n : global_best_ant_path)
+					std::cout << n << " -> ";
+				std::cout << "\n";
+				global_best_ant_changed = false;
+			}
 			iteration += 1;
 		}
+
+		std::cout <<
+			"Shortest Distance: " << global_best_ant_distance << "\n"
+			"Route information: ";
+		for (auto n : global_best_ant_path)
+			std::cout << n << " -> ";
+		std::cout << "\n";
+
 	}
 
 	void AntColonySystem::SetupNodesAndEdges(int TotalNodes)
@@ -160,17 +251,58 @@ namespace AntColonySystem
 				Edges[i][j].InvDist = 1 / Edges[i][j].Distance;				
 			}
 		}
+		
 		/* use nearest neighbor for the pheromone initial value */
+		float nearest_neighbour_distance = 0;
+		int current_node = 0;
+		float distance = 0;
+		std::vector <int> visited_nodes;
+		visited_nodes.push_back(current_node);
+		std::cout << "nearest Neighbor: "<<current_node << " > ";
 
-		for (auto edge : Edges)
+		while (visited_nodes.size() < Nodes.size())
 		{
+			int closest_edge = -1;
+			float closest_edge_dist = std::numeric_limits<float>::max();
+			
+			for (auto& edge : Edges[current_node])
+			{
+				auto [node_number, edge_data] = edge;			
+				
+				/* check if we visited this node already?*/
+				bool already_visisted = std::find_if(visited_nodes.begin(), visited_nodes.end(),
+					[node_number](int a)
+					{
+						return a == node_number;
+					}) != visited_nodes.end();
 
+				if (already_visisted)
+					continue;
+
+				/* if this node is closer update the data */
+				if (edge_data.Distance < closest_edge_dist)
+				{
+					closest_edge = node_number;
+					closest_edge_dist = edge_data.Distance;					
+				}
+			}
+			/* move to closets node */
+			nearest_neighbour_distance += closest_edge_dist;
+			visited_nodes.push_back(closest_edge);
+			std::cout << closest_edge << " > ";
+		}
+		std::cout << "\n";
+
+		float default_pheromone = 1 / (TotalNodes * nearest_neighbour_distance);
+
+		/* update all edges with default pheromone */
+		for (auto& [from_node, from_node_edges] : Edges)
+		{
+			for (auto& [too_node, edge_data] : from_node_edges)
+			{
+				edge_data.PheromoneDefault = default_pheromone;
+				edge_data.Pheromone = default_pheromone;
+			}
 		}
 	}
-
-	/* the denominator returns the "sum product" of the available edges to the ant's current node */
-	float AntColonySystem::GetDenominator(int current_node)
-	{
-		return 0;
-	}	
 }

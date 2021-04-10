@@ -23,9 +23,9 @@ namespace AntColonySystem
 	struct EdgeData
 	{
 		float Distance = 0.0f;
-		float Pheromone = 0.0f;
-		float PHeromoneDefault = 0.0f;// caluclated at setup
 		float InvDist = 0.0f;
+		float Pheromone = 0.0f;
+		float PheromoneDefault = 0.0f;// calculated at setup
 		EdgeData() {}
 		EdgeData(const EdgeData& other) :Distance(other.Distance), Pheromone(other.Pheromone), InvDist(other.InvDist) {};
 	};
@@ -36,7 +36,7 @@ namespace AntColonySystem
 		bool Alive = true;
 		bool GoodAnt = true;
 		std::vector<int> NodesVisited;
-		float DistanceTraveled = 0;
+		float DistanceTraveled = 0.0f;
 		AntData(int start_node) :CurrentNode(start_node) {};
 
 	};
@@ -48,8 +48,7 @@ namespace AntColonySystem
 		void Run(int TotalItertions, int TotalNodes, int TotalAnts);
 
 	private:
-		void SetupNodesAndEdges(int TotalNodes);
-		float GetDenominator(int node);
+		void SetupNodesAndEdges(int TotalNodes);		
 	private:
 		SimSettings Params;
 		std::vector<std::pair<int, int>> Nodes;		
