@@ -34,4 +34,4 @@ The proposed algorithm in this paper.
  - Currently uses randomly generated node locations.
  - All nodes are fully connected.
  - Ant start positions are random.
- - C++ 20
+ - C++ 17
